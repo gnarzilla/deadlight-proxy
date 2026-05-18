@@ -6,6 +6,7 @@
 [![Docker Image Size](https://img.shields.io/docker/image-size/gnarzilla/proxy-deadlight/latest)](https://hub.docker.com/r/gnarzilla/proxy-deadlight)
 [![GitHub License](https://img.shields.io/github/license/gnarzilla/deadlight-proxy)](LICENSE)
 
+
 A lightweight, multi-protocol proxy server built for **real-world conditions**: intermittent connectivity, resource constraints, and hostile networks. Written in C with GLib, featuring automatic protocol detection, HTTP/S, SOCKS4/5, WebSocket, SMTP, IMAP/S, FTP, TLS interception, VPN gateway mode, REST API and embedded web UI.
 
 **Multi-protocol in one binary** · **17.6 MB Docker image** · **Works on ARM64** · **REST API** · **Edge-native design**
@@ -15,20 +16,42 @@ A lightweight, multi-protocol proxy server built for **real-world conditions**: 
 > **Security Notice:** This proxy can perform TLS interception.
 > Only deploy on hardware you control. See [Security Considerations](#security-considerations).
 
+<p align="center">
+  <a href="https://ko-fi.com/s/bc2cb7c2ee" target="_blank">
+    <img src="https://raw.githubusercontent.com/gnarzilla/blog.deadlight/main/src/assets/apple-touch-icon/App-Store-Logo-transp.png"
+         width="88"
+         alt="Download Deadlight Proxy">
+  </a>
+</p>
+
+<h3 align="center">
+  Android APK Available Now
+</h3>
+
 <details>
-<summary>Now available as Android APK</summary>
+<summary>Android App</summary>
 
-[Download Android App](https://ko-fi.com/s/bc2cb7c2ee)
+<div align="center">
 
-Running on Samsung phone
+<img src="https://raw.githubusercontent.com/gnarzilla/deadlight-proxy/main/src/assets/media/deadlight-app-start.jpg"
+     width="260"
+     alt="Deadlight Proxy startup screen">
 
-<table>
-  <tr>
-    <td><img src="src/assets/media/deadlight-app-start.jpg" width="260"</td>
-    <td><img src="src/assets/media/deadlight-app-running3.jpg" width="260"</td>
-    <td><img src="src/assets/media/deadlight-app-shutdown.png" width="260"</td>
-  </tr>
-</table>
+<p><em>Startup screen</em></p>
+
+<img src="https://raw.githubusercontent.com/gnarzilla/deadlight-proxy/main/src/assets/media/deadlight-app-running3.jpg"
+     width="260"
+     alt="Deadlight Proxy running">
+
+<p><em>Live proxy monitoring</em></p>
+
+<img src="https://raw.githubusercontent.com/gnarzilla/deadlight-proxy/main/src/assets/media/deadlight-app-shutdown.png"
+     width="260"
+     alt="Deadlight Proxy stopped">
+
+<p><em>Shutdown state</em></p>
+
+</div>
 
 ---
 
@@ -36,7 +59,10 @@ Samsung tablet with curl tests in Termux
 
 <img src="src/assets/media/Screenshot_20260514_111354_Termux.jpg" width="520" alt="Android App on Tablet">
 
+[Download](https://ko-fi.com/s/bc2cb7c2ee)
+
 </details>
+
 
 <details>
   <summary>Or Compile in Termux</summary>
@@ -60,6 +86,7 @@ make clean && make UI=1
 </table>
 
 </details>
+
 
 ## Quick Start
 
