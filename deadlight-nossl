@@ -8,14 +8,14 @@
 [core]
 port                = 8080
 bind_address        = 0.0.0.0
-max_connections     = 500
+max_connections     = 5000
 connection_timeout  = 30
 buffer_size         = 65536
 # error | warning | info | debug
 log_level           = debug
 # empty = stdout
 log_file            =
-worker_threads      = 4
+worker_threads      = 12
 
 # ─────────────────────────────────────────────────────────────
 # SSL/TLS interception
@@ -25,8 +25,8 @@ worker_threads      = 4
 # ─────────────────────────────────────────────────────────────
 [ssl]
 enabled             = false
-ca_cert_file        = ~/.deadlight/ca.crt
-ca_key_file         = ~/.deadlight/ca.key
+ca_cert_file        = /home/thatch/.deadlight/ca.crt
+ca_key_file         = /home/thatch/.deadlight/ca.key
 ca_bundle           = /etc/ssl/certs/ca-certificates.crt
 cert_cache_size     = 1000
 cipher_suites       = HIGH:!aNULL:!MD5
@@ -47,7 +47,6 @@ passthrough         =
 # ─────────────────────────────────────────────────────────────
 # Protocol handlers
 # Read by deadlight_protocol_register_all()
-# Disable protocols you don't need to reduce attack surface
 # ─────────────────────────────────────────────────────────────
 [protocols]
 http_enabled                = true
@@ -63,7 +62,6 @@ protocol_detection_timeout  = 5
 
 # ─────────────────────────────────────────────────────────────
 # Network / connection pool
-# Generous defaults — tighten for production
 # ─────────────────────────────────────────────────────────────
 [network]
 upstream_timeout                        = 30
@@ -79,22 +77,24 @@ connection_pool_size                    = 10
 # idle eviction (seconds)
 connection_pool_timeout                 = 300
 # total pool across all hosts
-connection_pool_max_total               = 500
+connection_pool_max_total               = 1000
 # lru | fifo | none
 connection_pool_eviction_policy         = lru
 # seconds between health checks
 connection_pool_health_check_interval   = 60
 connection_pool_reuse_ssl               = true
 
+[smtp]
+provider = auto
+
 # ─────────────────────────────────────────────────────────────
 # Plugin system
-# Read by deadlight_plugin_manager_init()
 # plugin_dir is relative to the binary unless an absolute path is given
 # ─────────────────────────────────────────────────────────────
 [plugins]
 enabled             = true
 plugin_dir          = bin/plugins
-autoload            = adblocker,logger,stats
+autoload            = adblocker
 builtin_enabled     = true
 
 # ─────────────────────────────────────────────────────────────
@@ -172,7 +172,7 @@ blocked_domains         =
 max_request_size        = 10MB
 max_header_size         = 8KB
 # set this to enable /api/outbound/email auth
-auth_secret             =
+auth_secret             = gross-window-birthday-shit
 
 # ─────────────────────────────────────────────────────────────
 # VPN gateway (experimental)
