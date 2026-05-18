@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>D E A D L I G H T // P R O X Y</title>
     <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+    <link rel="shortcut icon" type="image/png" href="favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -549,15 +549,15 @@
 <footer>
     <span class="footer-plugins" id="footer-plugins">plugins: —</span>
     <span id="footer-center">&nbsp;</span>
-    <a href="https://github.com/gnarzilla/proxy.deadlight" target="_blank">github.com/gnarzilla/proxy.deadlight</a>
+    <a href="https://github.com/gnarzilla/deadlight-proxy" target="_blank">github.com/gnarzilla/deadlight-proxy</a>
 </footer>
 
 <script>
 'use strict';
 
 // ── CONFIG ────────────────────────────────────────────────────────
-const SSE_ENDPOINT  = 'http://127.0.0.1:8080/api/stream';
-const CONN_ENDPOINT = 'http://127.0.0.1:8081/api/connections';
+const SSE_ENDPOINT  = 'http://' + window.location.hostname + ':__PROXY_PORT__/api/stream';
+const CONN_ENDPOINT = '/api/connections';   // relative — same UI server
 const CONN_POLL_MS  = 2000;
 const MAX_LOG_LINES = 600;
 const MAX_RECONNECT_DELAY = 30000;

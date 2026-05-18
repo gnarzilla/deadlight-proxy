@@ -84,12 +84,37 @@ handle_api_status(DeadlightContext *context, struct MHD_Connection *conn, const 
 }
 
 /* ---------- Serve index.html ---------- */
-static int handle_root(struct MHD_Connection *conn)
+static int handle_root(struct MHD_Connection *conn, DeadlightContext *context)
 {
-    const char *html = (const char *)src_ui_index_html;
+    int proxy_port = deadlight_config_get_int(context, "core", "port", DEADLIGHT_DEFAULT_PORT);
+
+    /* xxd output isn't guaranteed null-terminated; strndup is safe */
+    gchar *html = g_strndup((const char *)src_ui_index_html, src_ui_index_html_len);
+
+    gchar *port_str = g_strdup_printf("%d", proxy_port);
+    gchar **parts   = g_strsplit(html, "__PROXY_PORT__", -1);
+    gchar *result   = g_strjoinv(port_str, parts);
+    g_strfreev(parts);
+    g_free(html);
+    g_free(port_str);
+
     struct MHD_Response *resp = MHD_create_response_from_buffer(
-        src_ui_index_html_len, (void *)html, MHD_RESPMEM_MUST_COPY);
+        strlen(result), result, MHD_RESPMEM_MUST_FREE);
     MHD_add_response_header(resp, "Content-Type", "text/html; charset=utf-8");
+    int ret = MHD_queue_response(conn, MHD_HTTP_OK, resp);
+    MHD_destroy_response(resp);
+    return ret;
+}
+
+/* ---------- Serve favicon ---------- */
+static int handle_favicon(struct MHD_Connection *conn,
+                           const unsigned char *data, size_t len,
+                           const char *mime)
+{
+    struct MHD_Response *resp = MHD_create_response_from_buffer(
+        len, (void *)data, MHD_RESPMEM_PERSISTENT);
+    MHD_add_response_header(resp, "Content-Type", mime);
+    MHD_add_response_header(resp, "Cache-Control", "max-age=86400");
     int ret = MHD_queue_response(conn, MHD_HTTP_OK, resp);
     MHD_destroy_response(resp);
     return ret;
@@ -111,13 +136,21 @@ request_handler(void *cls,
     
     DeadlightContext *context = cls;
     if (strcmp(url, "/") == 0 && strcmp(method, "GET") == 0) {
-        return handle_root(conn);
-    } 
+        return handle_root(conn, context);
+    }
     else if (strcmp(url, "/api/status") == 0 && strcmp(method, "GET") == 0) {
         return handle_api_status(context, conn, method);
     }
     else if (strcmp(url, "/api/connections") == 0 && strcmp(method, "GET") == 0) {
         return handle_api_connections(context, conn, method);
+    }
+    else if (strcmp(url, "/favicon.ico") == 0 && strcmp(method, "GET") == 0) {
+        return handle_favicon(conn, src_ui_favicon_ico,
+                            src_ui_favicon_ico_len, "image/x-icon");
+    }
+    else if (strcmp(url, "/favicon.png") == 0 && strcmp(method, "GET") == 0) {
+        return handle_favicon(conn, src_ui_favicon_png,
+                            src_ui_favicon_png_len, "image/png");
     }
  
     /* 404 Not Found */
@@ -132,19 +165,18 @@ static struct MHD_Daemon *ui_daemon = NULL;
 
 void start_ui_server(DeadlightContext *context)
 {
-    const unsigned short ui_port = 8081;
+    int ui_port = deadlight_config_get_int(context, "plugin.stats", "web_port", 8081);
 
     ui_daemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY,
-                                 ui_port,
-                                 NULL,
-                                 NULL,
-                                 (MHD_AccessHandlerCallback) &request_handler, // Cast for strict compilers
-                                 context, 
+                                 (unsigned short)ui_port,
+                                 NULL, NULL,
+                                 (MHD_AccessHandlerCallback)&request_handler,
+                                 context,
                                  MHD_OPTION_END);
     if (!ui_daemon) {
-        g_error("Failed to start UI daemon on port %u", ui_port);
+        g_error("Failed to start UI daemon on port %d", ui_port);
     } else {
-        g_info("UI server listening on http://127.0.0.1:%u", ui_port);
+        g_info("UI server listening on http://127.0.0.1:%d", ui_port);
     }
 }
 
