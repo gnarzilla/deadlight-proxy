@@ -28,6 +28,11 @@ A lightweight, multi-protocol proxy server built for **real-world conditions**: 
   Android APK Available Now
 </h3>
 
+<img src="https://raw.githubusercontent.com/gnarzilla/deadlight-proxy/main/src/assets/app/app-curl-browser-tests.gif"
+     width="260"
+     alt="Android App Curl & Browser Tests">
+
+
 <details>
 <summary>Android App</summary>
 
