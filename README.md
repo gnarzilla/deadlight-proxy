@@ -16,14 +16,6 @@ A lightweight, multi-protocol proxy server built for **real-world conditions**: 
 > **Security Notice:** This proxy can perform TLS interception.
 > Only deploy on hardware you control. See [Security Considerations](#security-considerations).
 
-<p align="center">
-  <a href="https://ko-fi.com/s/bc2cb7c2ee" target="_blank">
-    <img src="https://raw.githubusercontent.com/gnarzilla/blog.deadlight/main/src/assets/apple-touch-icon/App-Store-Logo-transp.png"
-         width="88"
-         alt="Download Deadlight Proxy">
-  </a>
-</p>
-
 ## Android App
 
 <table>
