@@ -24,20 +24,22 @@ A lightweight, multi-protocol proxy server built for **real-world conditions**: 
   </a>
 </p>
 
-<h3 align="center">
-  Android APK Available Now
-</h3>
+## Android App
 
-<table align="center">
-<tr>
-<td align="center">
-
-<img src="https://raw.githubusercontent.com/gnarzilla/deadlight-proxy/main/src/assets/app/app-curl-browser-tests.gif"
-     width="340"
-     alt="Android App Curl & Browser Tests">
-
-</td>
-</tr>
+<table>
+  <tr>
+    <td width="40%" align="center" valign="top">
+      <img src="https://raw.githubusercontent.com/gnarzilla/deadlight-proxy/main/src/assets/app/app-curl-browser-tests.gif" width="320" alt="Android App Curl & Browser Tests">
+    </td>
+    <td width="60%" valign="middle">
+      <h3>Android APK Available Now</h3>
+      <p>Run <code>deadlight-proxy</code> natively on your mobile device or tablet. Features real-time traffic inspection, protocol auto-detection, and low-footprint background routing right from your phone.</p>
+      <br />
+      <a href="https://ko-fi.com/s/bc2cb7c2ee" target="_blank">
+        <img src="https://raw.githubusercontent.com/gnarzilla/blog.deadlight/main/src/assets/apple-touch-icon/App-Store-Logo-transp.png" width="120" alt="Download Deadlight Proxy">
+      </a>
+    </td>
+  </tr>
 </table>
 
 
