@@ -36,40 +36,47 @@ A lightweight, multi-protocol proxy server built for **real-world conditions**: 
 
 
 <details>
-<summary>Android App</summary>
+<summary><b>View App Screenshots & Live Monitoring</b></summary>
+<br />
 
 <div align="center">
+  <table border="0" cellpadding="5" cellspacing="0">
+    <tr>
+      <td align="center" valign="top" width="33%">
+        <img src="https://raw.githubusercontent.com/gnarzilla/deadlight-proxy/main/src/assets/media/deadlight-app-start.jpg" 
+             style="border: 1px solid #30363d; border-radius: 8px; max-width: 100%;" 
+             alt="Deadlight Proxy startup screen">
+        <p><main><sub><i>Startup Screen</i></sub></main></p>
+      </td>
+      <td align="center" valign="top" width="33%">
+        <img src="https://raw.githubusercontent.com/gnarzilla/deadlight-proxy/main/src/assets/media/deadlight-app-running3.jpg" 
+             style="border: 1px solid #30363d; border-radius: 8px; max-width: 100%;" 
+             alt="Deadlight Proxy running">
+        <p><main><sub><i>Live Proxy Monitoring</i></sub></main></p>
+      </td>
+      <td align="center" valign="top" width="33%">
+        <img src="https://raw.githubusercontent.com/gnarzilla/deadlight-proxy/main/src/assets/media/deadlight-app-shutdown.png" 
+             style="border: 1px solid #30363d; border-radius: 8px; max-width: 100%;" 
+             alt="Deadlight Proxy stopped">
+        <p><main><sub><i>Shutdown State</i></sub></main></p>
+      </td>
+    </tr>
+  </table>
 
-<img src="https://raw.githubusercontent.com/gnarzilla/deadlight-proxy/main/src/assets/media/deadlight-app-start.jpg"
-     width="340"
-     alt="Deadlight Proxy startup screen">
+  <br />
+  <hr style="border-top: 1px solid #21262d; background: transparent;" />
+  <br />
 
-<p><em>Startup screen</em></p>
-
-<img src="https://raw.githubusercontent.com/gnarzilla/deadlight-proxy/main/src/assets/media/deadlight-app-running3.jpg"
-     width="340"
-     alt="Deadlight Proxy running">
-
-<p><em>Live proxy monitoring</em></p>
-
-<img src="https://raw.githubusercontent.com/gnarzilla/deadlight-proxy/main/src/assets/media/deadlight-app-shutdown.png"
-     width="340"
-     alt="Deadlight Proxy stopped">
-
-<p><em>Shutdown state</em></p>
-
+  <h4>Samsung Tablet Layout (Termux Curl Tests)</h4>
+  <img src="src/assets/media/Screenshot_20260514_111354_Termux.jpg" 
+       width="640" 
+       style="border: 1px solid #30363d; border-radius: 6px;" 
+       alt="Android App on Tablet">
+  
+  <br /><br />
+  <a href="https://ko-fi.com/s/bc2cb7c2ee"><b>📥 Download Android APK</b></a>
 </div>
-
----
-
-Samsung tablet with curl tests in Termux
-
-<img src="src/assets/media/Screenshot_20260514_111354_Termux.jpg" width="520" alt="Android App on Tablet">
-
-[Download](https://ko-fi.com/s/bc2cb7c2ee)
-
 </details>
-
 
 <details>
   <summary>Or Compile in Termux</summary>
