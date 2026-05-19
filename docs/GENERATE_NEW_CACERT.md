@@ -1,3 +1,11 @@
+Execute on devicee for enhanced HTTPS browsing
+
+Recommended via Termux
+```bash
+proot-distro install debian
+proot-distro login debian
+```
+
 ```bash
 mkdir -p ~/.deadlight
 
@@ -11,6 +19,6 @@ chmod 600 ~/.deadlight/ca.key
 chmod 644 ~/.deadlight/ca.crt
 Install it system-wide so curl and other tools trust it:
 
-sudo cp ~/.deadlight/ca.crt /usr/local/share/ca-certificates/deadlight.crt
-sudo update-ca-certificates
+cp ~/.deadlight/ca.crt /usr/local/share/ca-certificates/deadlight.crt
+update-ca-certificates
 ```
