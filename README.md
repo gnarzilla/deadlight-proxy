@@ -22,6 +22,7 @@ A lightweight, multi-protocol proxy server built for **real-world conditions**: 
   <tr>
     <td width="40%" align="center" valign="top">
       <img src="https://raw.githubusercontent.com/gnarzilla/deadlight-proxy/main/src/assets/app/deadlight-app-ui-v1.1.2.gif" width="320" alt="Android App Curl & Browser Tests">
+      <img src="https://raw.githubusercontent.com/gnarzilla/deadlight-proxy/main/src/assets/app/UI_v1.1.2_tablet.gif" width="320" alt="Android App - Curls tests in tablet">
     </td>
     <td width="60%" valign="middle">
       <h3>Android APK Available Now</h3>
