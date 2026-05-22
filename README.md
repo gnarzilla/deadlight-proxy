@@ -29,6 +29,10 @@ A lightweight, multi-protocol proxy server built for **real-world conditions**: 
       <h3>Android APK Available Now</h3>
       <p>Run <code>deadlight-proxy</code> natively on your mobile device or tablet. Features real-time traffic inspection, protocol auto-detection, and low-footprint background routing right from your phone.</p>
       <br />
+      <a href="https://ko-fi.com/s/bc2cb7c2ee" target="_blank">
+        <img src="https://raw.githubusercontent.com/gnarzilla/blog.deadlight/main/src/assets/apple-touch-icon/App-Store-Logo-transp.png" width="120" alt="Download Deadlight Proxy">
+      </a>
+    </td>
     <p align="center">
       <a href="https://play.google.com/store/apps/details?id=boo.deadlight.proxy">
         <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="60" alt="Get it on Google Play">
