@@ -1,4 +1,4 @@
-Execute on devicee for enhanced HTTPS browsing
+Execute on device for enhanced HTTPS browsing
 
 Recommended via Termux
 ```bash
