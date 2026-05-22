@@ -33,6 +33,7 @@ A lightweight, multi-protocol proxy server built for **real-world conditions**: 
         <img src="https://raw.githubusercontent.com/gnarzilla/blog.deadlight/main/src/assets/apple-touch-icon/App-Store-Logo-transp.png" width="120" alt="Download Deadlight Proxy">
       </a>
     </td>
+    <td width="60%" valign="middle">
     <p align="center">
       <a href="https://play.google.com/store/apps/details?id=boo.deadlight.proxy">
         <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="60" alt="Get it on Google Play">
