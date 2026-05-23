@@ -1172,8 +1172,9 @@ static void send_tcp_packet(DeadlightVPNManager *vpn, VPNSession *session,
     ip_hdr->total_length = htons(total_len);
     ip_hdr->ttl = 64;
     ip_hdr->protocol = IPPROTO_TCP;
-    ip_hdr->src_addr = dest_ip;  // We're sending FROM dest TO client
-    ip_hdr->dest_addr = client_ip;
+    ip_hdr->src_addr = htonl(dest_ip);  
+    ip_hdr->dest_addr = htonl(client_ip);
+    ip_hdr->checksum = 0;
     ip_hdr->checksum = ip_checksum(ip_hdr, ip_hdr_len);
 
     // Build TCP header
@@ -1194,6 +1195,7 @@ static void send_tcp_packet(DeadlightVPNManager *vpn, VPNSession *session,
     // TCP checksum (convert to host order for checksum function)
     guint32 src_ip_host = ntohl(dest_ip);
     guint32 dst_ip_host = ntohl(client_ip);
+    tcp_hdr->checksum = 0;
     tcp_hdr->checksum = tcp_checksum(src_ip_host, dst_ip_host,
                                     tcp_hdr, tcp_hdr_len + payload_len);
 
@@ -1379,17 +1381,18 @@ static void send_udp_packet(DeadlightVPNManager *vpn, VPNUDPSession *session,
     // Extract IPv4 addresses from IPv4-mapped IPv6
     guint32 client_ip = mapped_to_ipv4(&session->client_ip);
     guint32 dest_ip   = mapped_to_ipv4(&session->dest_ip);
-    
+
     // Build IP header
     memset(ip_hdr, 0, ip_hdr_len);
-    ip_hdr->version_ihl = 0x45;
+    ip_hdr->version_ihl = 0x45;  // IPv4, 5-word header
     ip_hdr->total_length = htons(total_len);
     ip_hdr->ttl = 64;
-    ip_hdr->protocol = IPPROTO_UDP;
-    ip_hdr->src_addr = dest_ip;  // FROM dest TO client
-    ip_hdr->dest_addr = client_ip;
+    ip_hdr->protocol = IPPROTO_TCP;
+    ip_hdr->src_addr = htonl(dest_ip);  
+    ip_hdr->dest_addr = htonl(client_ip);
+    ip_hdr->checksum = 0;
     ip_hdr->checksum = ip_checksum(ip_hdr, ip_hdr_len);
-    
+
     // Build UDP header
     memset(udp_hdr, 0, udp_hdr_len);
     udp_hdr->src_port = htons(session->dest_port);
@@ -1404,6 +1407,7 @@ static void send_udp_packet(DeadlightVPNManager *vpn, VPNUDPSession *session,
     // UDP checksum (convert to host order)
     guint32 src_ip_host = ntohl(dest_ip);
     guint32 dst_ip_host = ntohl(client_ip);
+    udp_hdr->checksum = 0;
     udp_hdr->checksum = udp_checksum(src_ip_host, dst_ip_host,
                                     udp_hdr, udp_hdr_len + payload_len);
     

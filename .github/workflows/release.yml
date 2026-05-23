@@ -30,12 +30,13 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
       - name: Build binary inside Docker
         run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+
           docker buildx build \
             --platform ${{ matrix.platform }} \
-            --build-arg VERSION=${GITHUB_REF_NAME} \
+            --build-arg VERSION="${VERSION}" \
             --output type=local,dest=./output \
             --target export \
             .
