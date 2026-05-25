@@ -1,5 +1,5 @@
 # Deadlight Proxy
-[Quick Start](#quick-start) · [Features](#features) · [API](#rest-api) · [Configuration](#configuration) · [Documentation](docs/) · [Architecture](#architecture) · [Roadmap](#roadmap) <br>
+[Quick Start](#quick-start) · [Features](#features) · [Android App](#android-app) · [API](#rest-api) · [Configuration](#configuration) · [Documentation](docs/) · [Architecture](#architecture) · [Roadmap](#roadmap) <br>
 
 [![Google Play](https://img.shields.io/badge/Google_Play-Deadlight_Proxy-414141?logo=google-play)](https://play.google.com/store/apps/details?id=boo.deadlight.proxy)
 [![GitHub Release](https://img.shields.io/github/v/release/gnarzilla/deadlight-proxy)](https://github.com/gnarzilla/deadlight-proxy/releases/latest)
