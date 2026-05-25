@@ -158,6 +158,26 @@ cache_methods       = GET,HEAD
 cache_responses     = 200,301,302,404
 
 # ─────────────────────────────────────────────────────────────
+# VPN gateway (experimental)
+# Read by deadlight_vpn_init()
+# ─────────────────────────────────────────────────────────────
+[vpn]
+enabled       = true
+tun_device    = tun0
+gateway_ip    = 10.8.0.1
+client_subnet = 10.8.0.0/24
+netmask       = 255.255.255.0
+dns_servers   =
+
+[egress]
+mode = direct          # direct | socks5 | http_connect | mesh
+host =
+port =
+username =
+password =
+bind_interface =
+
+# ─────────────────────────────────────────────────────────────
 # Security
 # allowed_domains / blocked_domains are access control lists,
 # distinct from [intercept] passthrough (which is about MITM policy)
@@ -173,10 +193,3 @@ max_request_size        = 10MB
 max_header_size         = 8KB
 # set this to enable /api/outbound/email auth
 auth_secret             = gross-window-birthday-shit
-
-# ─────────────────────────────────────────────────────────────
-# VPN gateway (experimental)
-# Read by deadlight_vpn_init()
-# ─────────────────────────────────────────────────────────────
-[vpn]
-enabled             = true
