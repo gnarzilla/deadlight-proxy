@@ -18,9 +18,11 @@ A lightweight, multi-protocol proxy server built for **real-world conditions**: 
 > Only deploy on hardware you control. See [Security Considerations](#security-considerations).
 
 ## Android App
+
 <table>
   <tr>
     <td width="40%" align="center" valign="top">
+      <img src="https://raw.githubusercontent.com/gnarzilla/deadlight-proxy/main/src/assets/app/app_guillotineMode.gif" width="320" alt="GuillotineMode">
       <img src="https://raw.githubusercontent.com/gnarzilla/deadlight-proxy/main/src/assets/app/android-tablet-color-notif.gif" width="320" alt="Android App - Curl tests in tablet">
     </td>
     <td width="60%" valign="middle" align="center">
@@ -492,6 +494,7 @@ See [docs/EXTENDING.md](docs/EXTENDING.md) for details.
 - **[Architecture](docs/ARCHITECTURE.md)** — Technical deep dive
 - **[Extending Deadlight](docs/EXTENDING.md)** — Plugin and protocol development
 - **[Contributing](docs/CONTRIBUTING.md)** — How to contribute
+- **[Privacy Policy](docs/PRIVACY_POLICY_ANDROID.md)
 
 ## License
 
@@ -500,7 +503,6 @@ MIT License — see [LICENSE](LICENSE)
 ## Support
 
 - **Issues:** [GitHub Issues](https://github.com/gnarzilla/deadlight-proxy/issues)
-- **Donate:** [ko-fi.com/gnarzilla](https://ko-fi.com/gnarzilla)
 - **Email:** gnarzilla@deadlight.boo
 
 **Contributions welcome** — see [CONTRIBUTING.md](docs/CONTRIBUTING.md)
