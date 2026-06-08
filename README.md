@@ -1,5 +1,5 @@
 # Deadlight Proxy
-[Quick Start](#quick-start) · [Features](#features) · [Android App](#android-app) · [API](#rest-api) · [Configuration](#configuration) · [Documentation](docs/) · [Architecture](#architecture) · [Roadmap](#roadmap) <br>
+[Quick Start](#quick-start) · [Features](#features) · [Ad & Privacy Blocking](#ad--privacy-blocking) · [Android App](#android-app) · [API](#rest-api) · [Configuration](#configuration) · [Documentation](docs/) · [Architecture](#architecture) · [Roadmap](#roadmap) <br>
 
 [![Google Play](https://img.shields.io/badge/Google_Play-Deadlight_Proxy-414141?logo=google-play)](https://play.google.com/store/apps/details?id=boo.deadlight.proxy)
 [![GitHub Release](https://img.shields.io/github/v/release/gnarzilla/deadlight-proxy)](https://github.com/gnarzilla/deadlight-proxy/releases/latest)
@@ -37,7 +37,7 @@ The ad blocker works alongside HTTP, CONNECT, and SOCKS traffic, making Deadligh
     </td>
     <td width="60%" valign="middle" align="center">
       <h3>Android APK Available Now</h3>
-      <p>Run <code>deadlight-proxy</code> natively on your mobile device or tablet. Features real-time traffic inspection, protocol auto-detection, and low-footprint background routing right from your phone.</p>
+      <p>Run <code>deadlight-proxy</code> natively on your mobile device or tablet. Features real-time traffic visibility, protocol auto-detection and a low-footprint local proxy UI right from your phone.</p>
       <br />
       <a href="https://ko-fi.com/s/bc2cb7c2ee" target="_blank">
         <img src="https://raw.githubusercontent.com/gnarzilla/blog.deadlight/main/src/assets/apple-touch-icon/App-Store-Logo-transp.png" width="120" alt="Download Deadlight Proxy">
@@ -67,7 +67,7 @@ make clean && make UI=1
     <td><img src="src/assets/media/Screenshot_20260503_201011_Termux.jpg" width="260"></td>
     <td><img src="src/assets/media/Screenshot_20260503_203338_Termux.jpg" width="260"></td>
     <td><img src="src/assets/media/Screenshot_20260503_211029_Termux.jpg" width="260"></td>
-    <td><img src="src/assets/media/webui-mobile.jpg" width="260"</td>
+    <td><img src="src/assets/media/webui-mobile.jpg" width="260"></td>
   </tr>
 </table>
 
@@ -503,7 +503,7 @@ See [docs/EXTENDING.md](docs/EXTENDING.md) for details.
 - **[Architecture](docs/ARCHITECTURE.md)** — Technical deep dive
 - **[Extending Deadlight](docs/EXTENDING.md)** — Plugin and protocol development
 - **[Contributing](docs/CONTRIBUTING.md)** — How to contribute
-- **[Privacy Policy](docs/PRIVACY_POLICY_ANDROID.md)
+- **[Privacy Policy](docs/PRIVACY_POLICY_ANDROID.md)** — Android privacy policy
 
 ## License
 
