@@ -1,4 +1,4 @@
-pp# Deadlight Proxy
+# Deadlight Proxy
 [Quick Start](#quick-start) · [Features](#features) · [Ad & Privacy Blocking](#ad--privacy-blocking) · [Android App](#android-app) · [API](#rest-api) · [Configuration](#configuration) · [Documentation](docs/) · [Architecture](#architecture) · [Roadmap](#roadmap) <br>
 
 [![Google Play](https://img.shields.io/badge/Google_Play-Deadlight_Proxy-414141?logo=google-play)](https://play.google.com/store/apps/details?id=boo.deadlight.proxy)
