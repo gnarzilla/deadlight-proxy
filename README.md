@@ -17,6 +17,16 @@ A lightweight, multi-protocol proxy server built for **real-world conditions**: 
 > **Security Notice:** This proxy can perform TLS interception.
 > Only deploy on hardware you control. See [Security Considerations](#security-considerations).
 
+## Ad & Privacy Blocking
+
+Deadlight includes a blocklist-driven plugin system for filtering ad, tracking, and unwanted domains at the proxy layer. The dashboard shows blocked requests, active tunnels, protocol counts, and live logs in real time.
+
+<p align="center">
+  <img src="src/assets/media/dashboard-adblocking.png" width="780" alt="Deadlight Proxy dashboard showing ad and tracker blocking activity">
+</p>
+
+The ad blocker works alongside HTTP, CONNECT, and SOCKS traffic, making Deadlight useful as a lightweight local privacy gateway, development proxy, or edge-network filter.
+
 ## Android App
 
 <table>
@@ -62,10 +72,6 @@ make clean && make UI=1
 </table>
 
 </details>
-
-Ad & Privacy Blocking Plugin
-
-<img src="src/assets/media/dashboard-adblocking.png" width="520" alt="adblocking plugin">
 
 ## Quick Start
 
