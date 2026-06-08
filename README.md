@@ -1,4 +1,4 @@
-# Deadlight Proxy
+pp# Deadlight Proxy
 [Quick Start](#quick-start) · [Features](#features) · [Ad & Privacy Blocking](#ad--privacy-blocking) · [Android App](#android-app) · [API](#rest-api) · [Configuration](#configuration) · [Documentation](docs/) · [Architecture](#architecture) · [Roadmap](#roadmap) <br>
 
 [![Google Play](https://img.shields.io/badge/Google_Play-Deadlight_Proxy-414141?logo=google-play)](https://play.google.com/store/apps/details?id=boo.deadlight.proxy)
@@ -168,7 +168,7 @@ make clean && make UI=1
 curl -x http://localhost:8080 http://example.com
 
 # Health check
-curl http://localhost:8080/api/health
+curl 127.0.0.1:8080/api/health
 
 # Web UI
 open http://localhost:8081
@@ -204,18 +204,18 @@ open http://localhost:8081
 # Health check
 curl http://localhost:8080/api/health
 
-# Send email
-curl -X POST http://localhost:8080/api/email/send \
-  -H "Content-Type: application/json" \
-  -d '{"to":"user@example.com", "from":"user@deadlight.boo","subject":"Test","body":"Hello"}'
-
 # View metrics
-curl http://localhost:8080/api/metrics | jq
+curl 127.0.0.1:8080/api/metrics | jq
 
 # Federation: Send post to another Deadlight instance
 curl -X POST http://localhost:8080/api/federation/send \
   -H "Content-Type: application/json" \
   -d '{"target_domain":"other.deadlight.boo","content":"Hello!","author":"alice"}'
+
+# Send email
+curl -X POST http://localhost:8080/api/email/send \
+  -H "Content-Type: application/json" \
+  -d '{"to":"user@example.com", "from":"user@deadlight.boo","subject":"Test","body":"Hello"}'
 ```
 
 ### Endpoints
