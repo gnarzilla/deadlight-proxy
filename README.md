@@ -64,6 +64,7 @@ make clean && make UI=1
 </details>
 
 Ad & Privacy Blocking Plugin
+
 <img src="src/assets/media/dashboard-adblocking.png" width="520" alt="adblocking plugin">
 
 ## Quick Start
