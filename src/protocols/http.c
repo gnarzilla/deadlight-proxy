@@ -27,6 +27,15 @@ void deadlight_register_http_handler(void) {
     deadlight_protocol_register(&http_protocol_handler);
 }
 
+// static gboolean is_client_tls_abort_error(const GError *error) {
+//     if (!error || !error->message) return FALSE;
+
+//    return g_strrstr(error->message, "Peer failed to perform TLS handshake") ||
+//           g_strrstr(error->message, "TLS connection was non-properly terminated") ||
+//           g_strrstr(error->message, "connection was closed") ||
+//           g_strrstr(error->message, "Connection reset by peer");
+//}
+
 // --- Protocol Handler Implementation ---
 
 static gsize http_detect(const guint8 *data, gsize len) {
@@ -222,31 +231,26 @@ static DeadlightHandlerResult handle_plain_http(DeadlightConnection *conn, GErro
 
     g_info("Connection %lu: Initial request sent, starting bidirectional tunnel.", conn->id);
 
-    deadlight_network_tunnel_data(conn, error);
+    gboolean tunnel_ok = deadlight_network_tunnel_data(conn, error);
 
     // Stale-connection guard: if the tunnel closed with zero bytes from upstream,
     // the pooled connection was alive enough to accept the write but had already
-    // been closed server-side (the classic half-dead race window).
+    // been closed server-side (half-dead race window).
     // Discard the connection, open a fresh one, and replay the request once.
     if (conn->bytes_upstream_to_client == 0 && conn->bytes_client_to_upstream > 0) {
         g_info("Connection %lu: Empty upstream response — stale pool connection detected, retrying.",
                conn->id);
 
-        // The tunnel already set state to CLOSING; reset for the retry.
         conn->state = DEADLIGHT_STATE_CONNECTING;
         conn->bytes_client_to_upstream = 0;
         conn->bytes_upstream_to_client = 0;
 
-        // Discard the dead upstream connection.
-        // cleanup_connection_internal would normally pool this, but the socket
-        // is dead so we explicitly discard it here before it gets pooled.
         if (conn->upstream_connection) {
             GIOStream *dead = G_IO_STREAM(conn->upstream_connection);
             connection_pool_discard(conn->context->conn_pool, dead);
             g_clear_object(&conn->upstream_connection);
         }
 
-        // Fresh connection — guaranteed pool miss.
         if (!deadlight_network_connect_upstream(conn, error)) {
             return HANDLER_ERROR;
         }
@@ -261,32 +265,28 @@ static DeadlightHandlerResult handle_plain_http(DeadlightConnection *conn, GErro
             return HANDLER_ERROR;
         }
 
-        g_info("Connection %lu: Retrying tunnel on fresh connection.", conn->id);
-        deadlight_network_tunnel_data(conn, error);
+    g_info("Connection %lu: Retrying tunnel on fresh connection.", conn->id);
+    tunnel_ok = deadlight_network_tunnel_data(conn, error);
     }
-    return HANDLER_ERROR;
+    return tunnel_ok ? HANDLER_SUCCESS_CLEANUP_NOW : HANDLER_ERROR;
 }
 
 static DeadlightHandlerResult handle_connect(DeadlightConnection *conn, GError **error) {
 
-    // 1. Get a pointer to the start of the buffer and find the end of the first line.
+    // Get a pointer to the start of the buffer and find the end of the first line.
     const gchar *data = (const gchar *)conn->client_buffer->data;
     const gchar *end_of_line = strstr(data, "\r\n");
 
-    // If we can't even find a newline, the request is malformed.
     if (!end_of_line) {
         g_set_error(error, G_IO_ERROR, G_IO_ERROR_INVALID_DATA, "Malformed CONNECT request: missing newline");
         return HANDLER_ERROR;
     }
 
-    // 2. Copy *only* the first line, avoiding a large allocation if the buffer is big.
     gchar *request_line = g_strndup(data, end_of_line - data);
     
-    // 3. Split the request line into its three expected parts.
     gchar **req_parts = g_strsplit(request_line, " ", 3);
-    g_free(request_line); // The temporary line is no longer needed.
+    g_free(request_line); 
 
-    // 4. Stricter validation: We need exactly 3 parts, and the first must be "CONNECT".
     if (g_strv_length(req_parts) < 3 || g_strcmp0(req_parts[0], "CONNECT") != 0) {
         g_strfreev(req_parts);
         g_set_error(error, G_IO_ERROR, G_IO_ERROR_INVALID_DATA, "Invalid CONNECT request line format");
@@ -304,10 +304,10 @@ static DeadlightHandlerResult handle_connect(DeadlightConnection *conn, GError *
     // Populate the request object for logging and plugins
     conn->current_request = deadlight_request_new(conn);
     conn->current_request->method = g_strdup("CONNECT");
-    conn->current_request->uri = g_strdup(req_parts[1]); // e.g., "example.com:443"
-    conn->current_request->host = g_strdup(host); // e.g., "example.com"
+    conn->current_request->uri = g_strdup(req_parts[1]); 
+    conn->current_request->host = g_strdup(host); 
 
-    g_strfreev(req_parts); // We're done with the split parts, so free the array.
+    g_strfreev(req_parts); 
 
     g_debug("Connection %lu: Calling plugin hook for CONNECT to %s", conn->id, host);
 

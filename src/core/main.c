@@ -19,6 +19,7 @@
 #include <glib.h>
 #include <gio/gio.h>
 #include <locale.h>
+#include <fcntl.h>
 
 #include "deadlight.h"
 
@@ -85,7 +86,7 @@ static void drop_privileges(void);
 static gboolean validate_configuration(DeadlightContext *ctx, GError **error);
 
 /**
- * Async-signal-safe signal handler
+ * GLib signal callback for graceful shutdown
  */
 static gboolean signal_handler(gpointer user_data) {
     // Use write() for signal safety
@@ -449,6 +450,14 @@ static int run_interactive_mode(void) {
         goto cleanup;
     }
     
+    // Override port if specified
+    if (opt_port > 0) {
+        deadlight_config_set_int(g_context, "core", "port", opt_port);
+        g_info("Command-line port override applied: %d", opt_port);
+    }
+
+    gboolean vpn_enabled = deadlight_config_get_bool(g_context, "vpn", "enabled", FALSE);
+
     // Validate configuration
     if (!validate_configuration(g_context, &error)) {
         g_critical("Configuration validation failed: %s", error->message);
@@ -456,10 +465,9 @@ static int run_interactive_mode(void) {
         ret = 1;
         goto cleanup;
     }
-    
-    // Override port if specified
-    if (opt_port > 0) {
-        deadlight_config_set_int(g_context, "core", "port", opt_port);
+
+    if (vpn_enabled && opt_daemon) {
+        g_warning("VPN may require CAP_NET_ADMIN; daemon privilege drop can prevent VPN startup");
     }
     
     // Set log level
@@ -507,7 +515,6 @@ static int run_interactive_mode(void) {
     }
     
     // Initialize VPN if enabled
-    gboolean vpn_enabled = deadlight_config_get_bool(g_context, "vpn", "enabled", FALSE);
     if (vpn_enabled) {
         g_info("VPN gateway is enabled in configuration");
         
@@ -621,56 +628,54 @@ cleanup:
  * Print test commands for all protocols
  */
 static void print_test_commands(gint port, gboolean vpn_enabled) {
-    g_print("\nTest commands:\n");
-    
-    // HTTP
-    g_print("  # HTTP\n");
+    g_print("\nTest commands:\n\n");
+
+    g_print("  # Basic HTTP smoke test\n");
     g_print("  curl -x http://localhost:%d http://example.com\n", port);
-    
-    // HTTPS (trust the local CA)
-    g_print("\n  # HTTPS\n");
-    g_print("  curl --cacert ~/.deadlight/ca.crt -x http://localhost:%d https://example.com\n", port);
-    
-    // SOCKS4
+
+    g_print("\n  # Inspect proxy-visible request details\n");
+    g_print("  curl -x http://localhost:%d http://httpbin.org/headers\n", port);
+    g_print("  curl -x http://localhost:%d http://httpbin.org/ip\n", port);
+
+    g_print("\n  # Plain HTTP\n");
+    g_print("  curl -x http://localhost:%d http://neverssl.com/\n", port);
+
+    g_print("\n  # HTTPS using Deadlight's local CA\n");
+    g_print("  curl --cacert ~/.deadlight/ca.crt -x http://localhost:%d https://httpbin.org/headers\n", port);
+
     g_print("\n  # SOCKS4\n");
-    g_print("  curl --socks4 localhost:%d http://example.com\n", port);
-    
-    // SOCKS5
+    g_print("  curl --socks4 localhost:%d http://httpbin.org/ip\n", port);
+
     g_print("\n  # SOCKS5\n");
-    g_print("  curl --socks5 localhost:%d http://example.com\n", port);
+    g_print("  curl --socks5 localhost:%d http://httpbin.org/ip\n", port);
     
-    // SMTP handshake
     g_print("\n  # SMTP\n");
     g_print("  printf \"HELO test.com\\r\\n\" | nc localhost %d\n", port);
     
-    // IMAP NOOP
     g_print("\n  # IMAP (NOOP)\n");
     g_print("  printf \"A001 NOOP\\r\\n\" | nc localhost %d\n", port);
     
-    // IMAP STARTTLS (explicit)
     g_print("\n  # IMAP STARTTLS\n");
     g_print("  openssl s_client -connect localhost:%d -starttls imap -crlf\n", port);
     
-    // IMAPS Secure Tunnel
     g_print("\n  # IMAPS tunnel using telnet\n");
-    g_print("  telnet localhost 8080\n");
+    g_print("  telnet localhost %d\n", port);
     g_print("\n  # Once connected, type the following and press Enter:\n");
     g_print("  A001 NOOP\n");
     
-    // Websocket
     g_print("\n  # WebSocket\n");
-    g_print("  curl -v --proxy http://localhost:8080 -H \"Upgrade: websocket\" http://ws.ifelse.io/\n\n");
+    g_print("  websocat -p http://localhost:%d wss://echo.websocket.org\n\n", port);
     
-    // FTP
+
     g_print("  # FTP with netcat:\n");
-    g_print("  printf \"USER anonymous\\r\\n\" | nc localhost 8080\n\n");
+    g_print("  printf \"USER anonymous\\r\\n\" | nc localhost %d\n\n", port);
     
     // VPN
     if (vpn_enabled) {
         g_print("  # VPN Gateway (requires root/CAP_NET_ADMIN):\n");
         g_print("  # Configure client to use 10.8.0.1 as gateway\n");
         g_print("  sudo ip route add default via 10.8.0.1 dev tun0\n");
-        g_print("  curl http://example.com  # Traffic goes through proxy!\n\n");
+        g_print("  curl https://httpbin.org/headers  # Traffic goes through proxy!\n\n");
     }
 }
 
@@ -691,7 +696,7 @@ static void print_banner(void) {
  * Print usage information
  */
 static void print_usage(void) {
-    g_print("Deadlight Proxy %s - Modular HTTP/HTTPS Proxy\n", VERSION);
+    g_print("Deadlight Proxy %s - Modular HTTP(S)/SOCKS Proxy\n", VERSION);
     g_print("Build: %s\n\n", BUILD_DATE);
     g_print("Usage: deadlight [OPTIONS]\n\n");
     g_print("Options:\n");
@@ -706,7 +711,7 @@ static void print_usage(void) {
     g_print("Test modules:\n");
     g_print("  all, config, logging, network, protocols, ssl, plugins, api\n\n");
     g_print("Examples:\n");
-    g_print("  deadlight -p 8080                    # Start on port 8080\n");
+    g_print("  deadlight -p 8787                    # Start on port 8787\n");
     g_print("  deadlight -d --pid-file /tmp/dl.pid # Run as daemon\n");
     g_print("  deadlight -t all                     # Run all tests\n");
     g_print("  deadlight -t network                 # Test network module\n");
@@ -728,7 +733,7 @@ int main(int argc, char *argv[]) {
     g_log_set_default_handler(deadlight_log_handler, NULL);
     
     // Parse command line arguments
-    context = g_option_context_new("- HTTP/HTTPS Proxy");
+    context = g_option_context_new("- HTTP(S)/SOCKS Proxy");
     
     g_option_context_add_main_entries(context, entries, NULL);
     g_option_context_set_description(context,

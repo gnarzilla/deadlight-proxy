@@ -556,8 +556,13 @@
 'use strict';
 
 // ── CONFIG ────────────────────────────────────────────────────────
-const SSE_ENDPOINT  = 'http://' + window.location.hostname + ':__PROXY_PORT__/api/stream';
-const CONN_ENDPOINT = '/api/connections';   // relative — same UI server
+const PROXY_PORT    = "__PROXY_PORT__";
+const API_BASE      = 'http://' + window.location.hostname + ':' + PROXY_PORT;
+
+const SSE_ENDPOINT  = API_BASE + '/api/stream';
+const CONN_ENDPOINT = API_BASE + '/api/connections';
+const DASH_ENDPOINT = API_BASE + '/api/dashboard';
+
 const CONN_POLL_MS  = 2000;
 const MAX_LOG_LINES = 600;
 const MAX_RECONNECT_DELAY = 30000;
@@ -686,7 +691,7 @@ function updateDashboard(data) {
 
     // Version badge
     if (si.version) {
-        document.getElementById('badge-version').textContent = 'v' + si.version;
+        document.getElementById('badge-version').textContent = si.version;
     }
 
     // Active / Total
@@ -783,6 +788,28 @@ function appendLogs(logs) {
     }
 }
 
+function displayConnectionHost(c) {
+    const proto = (c.protocol || '').toUpperCase();
+    const state = c.state || '';
+    const client = c.client || 'unknown';
+    const host = c.host || '';
+    const port = c.port || 0;
+
+    if (proto === 'API') {
+        return `API ${state.toLowerCase() || 'connection'} from ${client}`;
+    }
+
+    if (!host || host === 'unknown') {
+        return `${proto || 'connection'} ${state.toLowerCase() || 'pending'} from ${client}`;
+    }
+
+    if (!port || port === 0) {
+        return host;
+    }
+
+    return `${host}:${port}`;
+}
+
 // ── CONNECTIONS POLL ─────────────────────────────────────────────
 async function pollConnections() {
     try {
@@ -804,11 +831,11 @@ function renderConnections(conns, activeCount) {
     }
 
     countEl.textContent = conns.length;
-
+    
     container.innerHTML = conns.map(c => {
         const tx          = c.tx || 0;
         const rx          = c.rx || 0;
-        const hostDisplay = c.host ? `${c.host}:${c.port}` : '—';
+        const hostDisplay = c.display || displayConnectionHost(c);
         const proto       = c.protocol || '';
 
         return `<div class="conn-row">
@@ -825,11 +852,11 @@ function setStreamStatus(s) {
     const badge = document.getElementById('badge-stream');
     badge.className = 'badge badge-stream';
     if (s === 'online') {
-        badge.innerHTML = '<span class="pulse"></span>STREAMING';
+        badge.innerHTML = `<span class="pulse"></span>:${PROXY_PORT} ONLINE`;
         reconnectAttempts = 0;
     } else if (s === 'connecting') {
         badge.className += ' connecting';
-        badge.innerHTML = '<span class="pulse"></span>CONNECTING';
+        badge.innerHTML = `<span class="pulse"></span>:${PROXY_PORT} CONNECTING`;
     } else {
         badge.className += ' offline';
         const next = Math.min(2 ** reconnectAttempts, 30);
@@ -844,7 +871,17 @@ function connectSSE() {
 
     eventSource.addEventListener('dashboard', e => {
         try {
-            updateDashboard(JSON.parse(e.data));
+            const data = JSON.parse(e.data);
+
+            updateDashboard(data);
+
+            if (data.connections) {
+                renderConnections(
+                    data.connections.connections || [],
+                    data.connections.active || 0
+                );
+            }
+
             setStreamStatus('online');
         } catch(err) {
             console.error('[SSE] parse error:', err);
@@ -854,6 +891,7 @@ function connectSSE() {
     eventSource.onopen = () => {
         setStreamStatus('online');
         reconnectAttempts = 0;
+        stopConnectionPolling();
     };
 
     eventSource.onerror = () => {
@@ -868,12 +906,19 @@ function connectSSE() {
 // ── POLLING FALLBACK ─────────────────────────────────────────────
 function switchToPolling() {
     console.warn('[SSE] switching to polling fallback');
-    if (eventSource) { eventSource.close(); eventSource = null; }
+
+    if (eventSource) {
+        eventSource.close();
+        eventSource = null;
+    }
+
     document.getElementById('badge-stream').textContent = 'POLLING';
+
+    startConnectionPolling();
 
     async function poll() {
         try {
-            const res = await fetch('http://127.0.0.1:8080/api/dashboard');
+            const res = await fetch(DASH_ENDPOINT);
             if (!res.ok) throw new Error(res.status);
             updateDashboard(await res.json());
             setStreamStatus('online');
@@ -881,6 +926,7 @@ function switchToPolling() {
             setStreamStatus('offline');
         }
     }
+
     poll();
     setInterval(poll, 3000);
 }
@@ -888,18 +934,17 @@ function switchToPolling() {
 // ── INIT ──────────────────────────────────────────────────────────
 if (typeof EventSource !== 'undefined') {
     connectSSE();
-    setTimeout(() => { if (reconnectAttempts > 10) switchToPolling(); }, 60000);
+    setTimeout(() => {
+        if (reconnectAttempts > 10) switchToPolling();
+    }, 60000);
 } else {
     switchToPolling();
 }
 
-// Poll connections independently of SSE
-pollConnections();
-connPollTimer = setInterval(pollConnections, CONN_POLL_MS);
 
 window.addEventListener('beforeunload', () => {
     if (eventSource) eventSource.close();
-    if (connPollTimer) clearInterval(connPollTimer);
+    stopConnectionPolling();
 });
 </script>
 </body>

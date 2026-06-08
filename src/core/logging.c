@@ -107,7 +107,6 @@ void deadlight_log_handler(const gchar *log_domain, GLogLevelFlags log_level,
         }
         g_mutex_unlock(&web_log_mutex);
 
-        // --- Console/File Output (MOVED INSIDE) ---
         FILE *output = log_file ? log_file : stderr;
         gboolean use_color = isatty(fileno(stderr)) && !log_file;
 
@@ -212,6 +211,4 @@ void deadlight_logging_cleanup(DeadlightContext *context) {
     g_mutex_unlock(&web_log_mutex);
     g_mutex_clear(&web_log_mutex);
     
-    // Note: Can't easily use g_info here as handler might be invalid, 
-    // but usually cleanup happens at very end.
 }

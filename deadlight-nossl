@@ -15,7 +15,7 @@ buffer_size         = 65536
 log_level           = debug
 # empty = stdout
 log_file            =
-worker_threads      = 12
+worker_threads      = 24
 
 # ─────────────────────────────────────────────────────────────
 # SSL/TLS interception

@@ -30,13 +30,14 @@ typedef struct {
 /* Magic number lets api_cleanup_sse_stream safely distinguish an SSEStreamState
  * from any other structure that might be stored in conn->protocol_data. */
 #define SSE_STREAM_MAGIC 0x53534500u
-
+          
 typedef struct {
-    guint32 magic;                   /* Must equal SSE_STREAM_MAGIC            */
+    guint32 magic;      /* Must equal SSE_STREAM_MAGIC            */
     DeadlightConnection *conn;
-    GSocketConnection *socket_conn;  /* Held ref — output stream re-acquired each tick */
-    guint update_timer_id;           /* g_timeout_add_seconds id               */
+    GSocketConnection *socket_conn;
+    guint update_timer_id;
     guint64 last_total_connections;
+    guint64 last_active_connections;
     guint64 last_bytes_transferred;
     gboolean closed;
 } SSEStreamState;
@@ -86,6 +87,7 @@ static DeadlightHandlerResult api_send_404(DeadlightConnection *conn, GError **e
 /* JSON / metrics builders */
 static gchar *api_build_metrics_json(DeadlightContext *ctx);
 static gchar *api_build_dashboard_json(DeadlightContext *ctx);
+static gchar *api_build_connections_json(DeadlightContext *ctx);
 
 /* HTTP fetch */
 static gchar *http_get_raw(const gchar *host, guint16 port, gboolean use_tls, const gchar *path, guint timeout_seconds, GError **error);
@@ -650,101 +652,17 @@ static DeadlightHandlerResult api_handle_system_endpoint(DeadlightConnection *co
 }
 
 /* =========================================================================
- * CONNECTIONS ENDPOINT (ported from proxy.deadlight)
+ * CONNECTIONS ENDPOINT 
  * ========================================================================= */
 
 static DeadlightHandlerResult api_handle_connections_endpoint(DeadlightConnection *conn,
                                                                GError **error) {
-    DeadlightContext *ctx = conn->context;
-
-    JsonBuilder *builder = json_builder_new();
-    json_builder_begin_object(builder);
-    json_builder_set_member_name(builder, "connections");
-    json_builder_begin_array(builder);
-
-    guint active_count = 0;
-
-    if (ctx->connections) {
-        deadlight_network_lock_connections(ctx);
-
-        GHashTableIter iter;
-        gpointer key, value;
-        g_hash_table_iter_init(&iter, ctx->connections);
-
-        while (g_hash_table_iter_next(&iter, &key, &value)) {
-            DeadlightConnection *c = (DeadlightConnection *)value;
-
-            /* cleaned is set at the very top of cleanup_connection_internal
-             * before any fields are freed — safe to read under the mutex */
-            if (!c || c->cleaned) continue;
-
-            active_count++;
-
-            gdouble duration = c->connection_timer
-                ? g_timer_elapsed(c->connection_timer, NULL) : 0.0;
-
-            json_builder_begin_object(builder);
-
-            json_builder_set_member_name(builder, "id");
-            json_builder_add_int_value(builder, (gint64)c->id);
-
-            json_builder_set_member_name(builder, "host");
-            json_builder_add_string_value(builder,
-                c->target_host ? c->target_host : "unknown");
-
-            json_builder_set_member_name(builder, "port");
-            json_builder_add_int_value(builder, (gint64)c->target_port);
-
-            json_builder_set_member_name(builder, "protocol");
-            json_builder_add_string_value(builder,
-                deadlight_protocol_to_string(c->protocol));
-
-            json_builder_set_member_name(builder, "state");
-            json_builder_add_string_value(builder,
-                deadlight_state_to_string(c->state));
-
-            json_builder_set_member_name(builder, "rx");
-            json_builder_add_int_value(builder, (gint64)c->bytes_upstream_to_client);
-
-            json_builder_set_member_name(builder, "tx");
-            json_builder_add_int_value(builder, (gint64)c->bytes_client_to_upstream);
-
-            json_builder_set_member_name(builder, "duration");
-            json_builder_add_double_value(builder, duration);
-
-            json_builder_set_member_name(builder, "client");
-            json_builder_add_string_value(builder,
-                c->client_address ? c->client_address : "unknown");
-
-            json_builder_end_object(builder);
-        }
-
-        deadlight_network_unlock_connections(ctx);
-    }
-
-    json_builder_end_array(builder);
-
-    json_builder_set_member_name(builder, "total");
-    json_builder_add_int_value(builder, (gint64)ctx->total_connections);
-
-    json_builder_set_member_name(builder, "active");
-    json_builder_add_int_value(builder, (gint64)active_count);
-
-    json_builder_end_object(builder);
-
-    JsonGenerator *gen = json_generator_new();
-    JsonNode *root = json_builder_get_root(builder);
-    json_generator_set_root(gen, root);
-    gchar *json = json_generator_to_data(gen, NULL);
+    gchar *json = api_build_connections_json(conn->context);
 
     DeadlightHandlerResult result =
         api_send_json_response(conn, 200, "OK", json, error);
 
     g_free(json);
-    json_node_unref(root);
-    g_object_unref(gen);
-    g_object_unref(builder);
-
     return result;
 }
 
@@ -1180,6 +1098,140 @@ static DeadlightHandlerResult api_handle_dashboard_endpoint(DeadlightConnection 
         api_send_json_response(conn, 200, "OK", json, error);
     g_free(json);
     return result;
+}
+
+static gchar *api_build_connections_json(DeadlightContext *ctx) {
+    if (!ctx) {
+        return g_strdup("{\"connections\":[],\"total\":0,\"active\":0}");
+    }
+
+    JsonBuilder *builder = json_builder_new();
+
+    json_builder_begin_object(builder);
+
+    json_builder_set_member_name(builder, "connections");
+    json_builder_begin_array(builder);
+
+    guint active_count = 0;
+
+    if (ctx->connections) {
+        deadlight_network_lock_connections(ctx);
+
+        GHashTableIter iter;
+        gpointer key, value;
+        g_hash_table_iter_init(&iter, ctx->connections);
+
+        while (g_hash_table_iter_next(&iter, &key, &value)) {
+            DeadlightConnection *c = (DeadlightConnection *)value;
+
+            if (!c || c->cleaned) {
+                continue;
+            }
+
+            active_count++;
+
+            gdouble duration = c->connection_timer
+                ? g_timer_elapsed(c->connection_timer, NULL)
+                : 0.0;
+
+            const gchar *protocol = deadlight_protocol_to_string(c->protocol);
+            const gchar *state    = deadlight_state_to_string(c->state);
+            const gchar *client   = c->client_address ? c->client_address : "unknown";
+            const gchar *host     = c->target_host ? c->target_host : "unknown";
+            gint port             = c->target_port;
+
+            gboolean is_api = (c->protocol == DEADLIGHT_PROTOCOL_API);
+            gboolean is_sse_stream = FALSE;
+
+            if (is_api && c->protocol_data) {
+                SSEStreamState *sse = (SSEStreamState *)c->protocol_data;
+                is_sse_stream = (sse->magic == SSE_STREAM_MAGIC);
+            }
+
+            const gchar *kind = is_api ? "control" : "proxy";
+            gchar *display = NULL;
+
+            if (is_sse_stream) {
+                display = g_strdup_printf("API stream from %s", client);
+            } else if (is_api) {
+                display = g_strdup_printf("API request from %s", client);
+            } else if (host && !g_str_equal(host, "unknown") && port > 0) {
+                display = g_strdup_printf("%s:%d", host, port);
+            } else if (host && !g_str_equal(host, "unknown")) {
+                display = g_strdup(host);
+            } else {
+                display = g_strdup_printf("%s %s from %s",
+                                        protocol ? protocol : "connection",
+                                        state ? state : "active",
+                                        client);
+            }
+
+            json_builder_begin_object(builder);
+
+            json_builder_set_member_name(builder, "id");
+            json_builder_add_int_value(builder, (gint64)c->id);
+
+            json_builder_set_member_name(builder, "host");
+            json_builder_add_string_value(builder, host);
+
+            json_builder_set_member_name(builder, "port");
+            json_builder_add_int_value(builder, (gint64)port);
+
+            json_builder_set_member_name(builder, "protocol");
+            json_builder_add_string_value(builder, protocol);
+
+            json_builder_set_member_name(builder, "state");
+            json_builder_add_string_value(builder, state);
+
+            json_builder_set_member_name(builder, "rx");
+            json_builder_add_int_value(builder,
+                (gint64)c->bytes_upstream_to_client);
+
+            json_builder_set_member_name(builder, "tx");
+            json_builder_add_int_value(builder,
+                (gint64)c->bytes_client_to_upstream);
+
+            json_builder_set_member_name(builder, "duration");
+            json_builder_add_double_value(builder, duration);
+
+            json_builder_set_member_name(builder, "kind");
+            json_builder_add_string_value(builder, kind);
+
+            json_builder_set_member_name(builder, "display");
+            json_builder_add_string_value(builder, display);
+
+            json_builder_set_member_name(builder, "client");
+            json_builder_add_string_value(builder, client);
+
+            json_builder_end_object(builder);
+
+            g_free(display);
+        }
+
+        deadlight_network_unlock_connections(ctx);
+    }
+
+    json_builder_end_array(builder);
+
+    json_builder_set_member_name(builder, "total");
+    json_builder_add_int_value(builder, (gint64)ctx->total_connections);
+
+    json_builder_set_member_name(builder, "active");
+    json_builder_add_int_value(builder, (gint64)active_count);
+
+    json_builder_end_object(builder);
+
+    JsonGenerator *gen = json_generator_new();
+    JsonNode *root = json_builder_get_root(builder);
+    json_generator_set_root(gen, root);
+
+    gchar *json = json_generator_to_data(gen, NULL);
+
+    json_node_unref(root);
+    g_object_unref(gen);
+    g_object_unref(builder);
+
+    return json;
 }
 
 /* =========================================================================
@@ -1902,14 +1954,25 @@ static gchar *api_build_metrics_json(DeadlightContext *ctx) {
 static gchar *api_build_dashboard_json(DeadlightContext *ctx) {
     if (!ctx) return g_strdup("{\"error\":\"NULL context\"}");
 
-    gchar *metrics = api_build_metrics_json(ctx);
-    gchar *logs    = deadlight_logging_get_buffered_json();
+    gchar *metrics     = api_build_metrics_json(ctx);
+    gchar *connections = api_build_connections_json(ctx);
+    gchar *logs        = deadlight_logging_get_buffered_json();
 
-    gchar *result = g_strdup_printf("{\"metrics\":%s,\"logs\":%s}",
-                                    metrics,
-                                    logs ? logs : "[]");
+    gchar *result = g_strdup_printf(
+        "{"
+        "\"metrics\":%s,"
+        "\"connections\":%s,"
+        "\"logs\":%s"
+        "}",
+        metrics,
+        connections,
+        logs ? logs : "[]"
+    );
+
     g_free(metrics);
+    g_free(connections);
     g_free(logs);
+
     return result;
 }
 
@@ -1983,7 +2046,7 @@ DeadlightHandlerResult api_handle_prometheus_metrics(DeadlightConnection *conn,
 
 static DeadlightHandlerResult api_handle_stream_endpoint(DeadlightConnection *conn,
                                                           GError **error) {
-    g_info("SSE: Client %lu connected to event stream", conn->id);
+    g_debug("SSE: Client %lu connected to event stream", conn->id);
 
     GOutputStream *client_os = g_io_stream_get_output_stream(
         G_IO_STREAM(conn->client_connection));
@@ -2020,8 +2083,9 @@ static DeadlightHandlerResult api_handle_stream_endpoint(DeadlightConnection *co
     state->conn                   = conn;
     state->socket_conn            = g_object_ref(conn->client_connection);
     state->closed                 = FALSE;
-    state->last_total_connections = conn->context->total_connections;
-    state->last_bytes_transferred = conn->context->bytes_transferred;
+    state->last_total_connections  = conn->context->total_connections;
+    state->last_active_connections = conn->context->active_connections;
+    state->last_bytes_transferred  = conn->context->bytes_transferred;
 
     /* TCP keepalive — detects dead clients without waiting for a write failure */
     {
@@ -2039,7 +2103,7 @@ static DeadlightHandlerResult api_handle_stream_endpoint(DeadlightConnection *co
     state->update_timer_id = g_timeout_add_seconds(2, sse_send_update, state);
     conn->protocol_data = state;
 
-    g_info("SSE: Stream established for client %lu", conn->id);
+    g_debug("SSE: Stream established for client %lu", conn->id);
     return HANDLER_SUCCESS_ASYNC;
 }
 
@@ -2098,7 +2162,8 @@ static gboolean sse_send_update(gpointer user_data) {
 
     /* Dashboard update if proxy metrics changed */
     gboolean metrics_changed =
-        (ctx->total_connections != state->last_total_connections) ||
+        (ctx->total_connections  != state->last_total_connections) ||
+        (ctx->active_connections != state->last_active_connections) ||
         (ctx->bytes_transferred  != state->last_bytes_transferred);
 
     if (metrics_changed) {
@@ -2112,8 +2177,9 @@ static gboolean sse_send_update(gpointer user_data) {
                 sse_stream_cleanup(state);
                 return G_SOURCE_REMOVE;
             }
-            state->last_total_connections = ctx->total_connections;
-            state->last_bytes_transferred = ctx->bytes_transferred;
+                state->last_total_connections  = ctx->total_connections;
+                state->last_active_connections = ctx->active_connections;
+                state->last_bytes_transferred  = ctx->bytes_transferred;
             wrote_something = TRUE;
             g_free(json);
         }
