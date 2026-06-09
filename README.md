@@ -1,5 +1,5 @@
 # Deadlight Proxy
-[Quick Start](#quick-start) · [Features](#features) · [Android App](#android-app) · [API](#rest-api) · [Configuration](#configuration) · [Documentation](docs/) · [Architecture](#architecture) · [Roadmap](#roadmap) <br>
+[Quick Start](#quick-start) · [Features](#features) · [Ad & Privacy Blocking](#ad--privacy-blocking) · [Android App](#android-app) · [API](#rest-api) · [Configuration](#configuration) · [Documentation](docs/) · [Architecture](#architecture) · [Roadmap](#roadmap) <br>
 
 [![Google Play](https://img.shields.io/badge/Google_Play-Deadlight_Proxy-414141?logo=google-play)](https://play.google.com/store/apps/details?id=boo.deadlight.proxy)
 [![GitHub Release](https://img.shields.io/github/v/release/gnarzilla/deadlight-proxy)](https://github.com/gnarzilla/deadlight-proxy/releases/latest)
@@ -17,6 +17,16 @@ A lightweight, multi-protocol proxy server built for **real-world conditions**: 
 > **Security Notice:** This proxy can perform TLS interception.
 > Only deploy on hardware you control. See [Security Considerations](#security-considerations).
 
+## Ad & Privacy Blocking
+
+Deadlight includes a blocklist-driven plugin system for filtering ad, tracking, and unwanted domains at the proxy layer. The dashboard shows blocked requests, active tunnels, protocol counts, and live logs in real time.
+
+<p align="center">
+  <img src="src/assets/media/dashboard-adblocking.png" width="780" alt="Deadlight Proxy dashboard showing ad and tracker blocking activity">
+</p>
+
+The ad blocker works alongside HTTP, CONNECT, and SOCKS traffic, making Deadlight useful as a lightweight local privacy gateway, development proxy, or edge-network filter.
+
 ## Android App
 
 <table>
@@ -27,7 +37,7 @@ A lightweight, multi-protocol proxy server built for **real-world conditions**: 
     </td>
     <td width="60%" valign="middle" align="center">
       <h3>Android APK Available Now</h3>
-      <p>Run <code>deadlight-proxy</code> natively on your mobile device or tablet. Features real-time traffic inspection, protocol auto-detection, and low-footprint background routing right from your phone.</p>
+      <p>Run <code>deadlight-proxy</code> natively on your mobile device or tablet. Features real-time traffic visibility, protocol auto-detection and a low-footprint local proxy UI right from your phone.</p>
       <br />
       <a href="https://ko-fi.com/s/bc2cb7c2ee" target="_blank">
         <img src="https://raw.githubusercontent.com/gnarzilla/blog.deadlight/main/src/assets/apple-touch-icon/App-Store-Logo-transp.png" width="120" alt="Download Deadlight Proxy">
@@ -57,12 +67,11 @@ make clean && make UI=1
     <td><img src="src/assets/media/Screenshot_20260503_201011_Termux.jpg" width="260"></td>
     <td><img src="src/assets/media/Screenshot_20260503_203338_Termux.jpg" width="260"></td>
     <td><img src="src/assets/media/Screenshot_20260503_211029_Termux.jpg" width="260"></td>
-    <td><img src="src/assets/media/webui-mobile.jpg" width="260"</td>
+    <td><img src="src/assets/media/webui-mobile.jpg" width="260"></td>
   </tr>
 </table>
 
 </details>
-
 
 ## Quick Start
 
@@ -159,7 +168,7 @@ make clean && make UI=1
 curl -x http://localhost:8080 http://example.com
 
 # Health check
-curl http://localhost:8080/api/health
+curl 127.0.0.1:8080/api/health
 
 # Web UI
 open http://localhost:8081
@@ -195,18 +204,18 @@ open http://localhost:8081
 # Health check
 curl http://localhost:8080/api/health
 
-# Send email
-curl -X POST http://localhost:8080/api/email/send \
-  -H "Content-Type: application/json" \
-  -d '{"to":"user@example.com", "from":"user@deadlight.boo","subject":"Test","body":"Hello"}'
-
 # View metrics
-curl http://localhost:8080/api/metrics | jq
+curl 127.0.0.1:8080/api/metrics | jq
 
 # Federation: Send post to another Deadlight instance
 curl -X POST http://localhost:8080/api/federation/send \
   -H "Content-Type: application/json" \
   -d '{"target_domain":"other.deadlight.boo","content":"Hello!","author":"alice"}'
+
+# Send email
+curl -X POST http://localhost:8080/api/email/send \
+  -H "Content-Type: application/json" \
+  -d '{"to":"user@example.com", "from":"user@deadlight.boo","subject":"Test","body":"Hello"}'
 ```
 
 ### Endpoints
@@ -494,7 +503,7 @@ See [docs/EXTENDING.md](docs/EXTENDING.md) for details.
 - **[Architecture](docs/ARCHITECTURE.md)** — Technical deep dive
 - **[Extending Deadlight](docs/EXTENDING.md)** — Plugin and protocol development
 - **[Contributing](docs/CONTRIBUTING.md)** — How to contribute
-- **[Privacy Policy](docs/PRIVACY_POLICY_ANDROID.md)
+- **[Privacy Policy](docs/PRIVACY_POLICY_ANDROID.md)** — Android privacy policy
 
 ## License
 
