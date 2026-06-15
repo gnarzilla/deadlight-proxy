@@ -19,8 +19,8 @@ LDFLAGS  = -Wl,--as-needed
 LIBS     = -lssl -lcrypto -lpthread -lresolv
 
 # Package config for GLib/GIO
-GLIB_CFLAGS := $(shell pkg-config --cflags glib-2.0 gio-2.0 gio-unix-2.0 json-glib-1.0 gmodule-2.0)
-GLIB_LIBS   := $(shell pkg-config --libs   glib-2.0 gio-2.0 gio-unix-2.0 json-glib-1.0 gmodule-2.0)
+GLIB_CFLAGS := $(shell pkg-config --cflags glib-2.0 gio-2.0 gio-unix-2.0 json-glib-1.0 gmodule-2.0 libsoup-2.4)
+GLIB_LIBS   := $(shell pkg-config --libs   glib-2.0 gio-2.0 gio-unix-2.0 json-glib-1.0 gmodule-2.0 libsoup-2.4)
 
 # Combined flags
 ALL_CFLAGS = $(CFLAGS) $(DEPFLAGS) $(GLIB_CFLAGS) -Isrc

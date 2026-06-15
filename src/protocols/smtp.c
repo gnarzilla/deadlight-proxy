@@ -560,7 +560,7 @@ gboolean smtp_send_message(const gchar *from, const gchar *to,
         // Read 354 response
         bytes_read = g_input_stream_read(in, buffer, sizeof(buffer) - 1, NULL, NULL);
         if (bytes_read <= 0 || buffer[0] != '3') continue;
-        
+
         // Build email with proper headers
         GDateTime *now = g_date_time_new_now_local();
         gchar *date_str = g_date_time_format(now, "%a, %d %b %Y %H:%M:%S %z");
@@ -582,6 +582,7 @@ gboolean smtp_send_message(const gchar *from, const gchar *to,
             body);
 
         g_free(date_str);
+        
         g_date_time_unref(now);
         
         if (!g_output_stream_write_all(out, message->str, message->len, NULL, NULL, NULL)) {

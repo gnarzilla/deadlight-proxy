@@ -103,7 +103,7 @@ builtin_enabled     = true
 [plugin.adblocker]
 enabled             = true
 blocklist_url       = https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
-blocklist_file      = /var/cache/deadlight/blocklist.txt
+blocklist_file      = ~/.cache/deadlight/blocklist.txt
 # 86400 = daily
 update_interval     = 86400
 custom_rules        =

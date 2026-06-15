@@ -1234,6 +1234,25 @@ static gchar *api_build_connections_json(DeadlightContext *ctx) {
     return json;
 }
 
+static gboolean email_send(DeadlightConnection *conn,
+                           const gchar *from,
+                           const gchar *to,
+                           const gchar *subject,
+                           const gchar *body,
+                           GError **error) {
+    const gchar *mc_key = deadlight_config_get_string(
+        conn->context, "smtp", "mailchannels_api_key", NULL);
+
+    if (mc_key && strlen(mc_key) > 0) {
+        g_info("Email: Using MailChannels transport");
+        return email_send_via_mailchannels(conn, from, to, subject, body, error);
+    }
+
+    g_info("Email: No MailChannels key configured, using direct MX delivery");
+    
+    return smtp_send_message(from, to, subject, body, error);
+}
+
 /* =========================================================================
  * FEDERATION IMPLEMENTATION
  * ========================================================================= */
@@ -1437,10 +1456,8 @@ static DeadlightHandlerResult api_federation_send(DeadlightConnection *conn,
     gchar *to_address = g_strdup_printf("federation@%s", target_domain);
 
     GError *send_error = NULL;
-    gboolean sent = email_send_via_mailchannels(conn,
-                                                "federation@deadlight.boo",
-                                                to_address, subject, content,
-                                                &send_error);
+
+    gboolean sent = email_send(conn, "federation@deadlight.boo", to_address, subject, content, &send_error);
     DeadlightHandlerResult result;
     if (sent) {
         g_info("Federation: Email fallback succeeded to %s", target_domain);
