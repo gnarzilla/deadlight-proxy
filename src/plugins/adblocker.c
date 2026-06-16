@@ -696,7 +696,7 @@ static gboolean on_response_body(DeadlightResponse *response)
 
     /* Gate to text/html only */
     const gchar *ct = g_hash_table_lookup(response->headers, "Content-Type");
-    if (!ct || !g_ascii_strstr_with_len(ct, (gssize)strlen(ct), "text/html"))
+    if (!ct || !g_strstr_len(ct, (gssize)strlen(ct), "text/html"))
         return TRUE;
 
     if (!response->body || response->body->len == 0)

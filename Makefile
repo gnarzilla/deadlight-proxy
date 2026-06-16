@@ -111,7 +111,7 @@ PLUGIN_LIBS   = $(GLIB_LIBS)
 
 PLUGIN_TARGETS = \
 	$(PLUGIN_BINDIR)/adblocker.so \
-
+	$(PLUGIN_BINDIR)/credinjector.so
 #=============================================================================
 # Top-level Targets
 #=============================================================================
@@ -189,6 +189,10 @@ $(PLUGIN_BINDIR)/adblocker.so: $(PLUGINDIR)/adblocker.c $(PLUGINDIR)/adblocker.h
 
 $(PLUGIN_BINDIR)/ratelimiter.so: $(PLUGINDIR)/ratelimiter.c $(PLUGINDIR)/ratelimiter.h | $(PLUGIN_BINDIR)
 	@echo "Building RateLimiter plugin..."
+	@$(CC) $(PLUGIN_CFLAGS) -shared -o $@ $< $(PLUGIN_LIBS)
+
+$(PLUGIN_BINDIR)/credinjector.so: $(PLUGINDIR)/credinjector.c $(PLUGINDIR)/credinjector.h | $(PLUGIN_BINDIR)
+	@echo "Building Credential Injector plugin..."
 	@$(CC) $(PLUGIN_CFLAGS) -shared -o $@ $< $(PLUGIN_LIBS)
 
 #=============================================================================

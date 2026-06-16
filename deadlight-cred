@@ -1,4 +1,4 @@
-# proxy.deadlight v1.1.0
+# deadlight-proxy v1.1.0
 # https://deadlight.boo | https://proxy.deadlight.boo
 
 # ─────────────────────────────────────────────────────────────
@@ -40,7 +40,7 @@ protocols           = TLSv1.2,TLSv1.3
 # SCT / aggressive cert validation, crash telemetry
 # ─────────────────────────────────────────────────────────────
 [intercept]
-enabled             = false
+enabled             = true
 log_passthrough     = true
 passthrough         = 
 
@@ -109,8 +109,8 @@ update_interval     = 86400
 custom_rules        =
 
 [plugin.credinjector]
-enabled     = true
-socket_path = ~/.cache/deadlight/vault.sock
+enabled             = true
+socket_path         = ~/.cache/deadlight/vault.sock
 
 # ─────────────────────────────────────────────────────────────
 # Plugin: logger

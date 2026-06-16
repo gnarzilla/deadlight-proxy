@@ -21,7 +21,7 @@ typedef struct {
     GDateTime *last_update;
     guint update_source_id;
     
-    gboolean enabled;  // Add this field
+    gboolean enabled; 
 } AdBlockerData;
 
 // Direct integration functions
